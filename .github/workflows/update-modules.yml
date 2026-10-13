@@ -1,0 +1,60 @@
+name: Update pox modules
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-pox-modules
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev libelf-dev python3 zip unzip
+
+      - name: Build modules for the latest pox release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/build_pox_modules.sh
+
+      - name: Commit new modules
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data/begonia)" ]; then
+            git add data/begonia
+            git commit -m "modules: add md_patcher for latest pox release"
+            git push
+          else
+            echo "No new modules."
+          fi
+
+      - name: Package tool
+        run: tools/package_release.sh
+
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="latest"
+          notes="Automatically rebuilt md_patcher modules for the latest pox-begonia-kernel release. The single imei_repair zip autodetects the running kernel."
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --notes "$notes"
+          else
+            gh release create "$tag" --title "MTK IMEI patcher (latest)" --notes "$notes" --latest
+          fi
+          gh release upload "$tag" out/mtk_imei-*.zip --clobber

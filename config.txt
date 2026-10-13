@@ -1,0 +1,10 @@
+{
+  "patch_cert": 1,
+  "kernel":   "all",
+  "device":   "begonia",
+  "chip_id":  "",
+  "imei_1":   "",
+  "imei_2":   "",
+  "wifi_mac": "",
+  "bt_mac":   ""
+}

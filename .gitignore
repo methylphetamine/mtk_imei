@@ -1,0 +1,9 @@
+/out/
+/.work/
+md_patcher/*.ko
+md_patcher/*.o
+md_patcher/*.mod.c
+md_patcher/.*.cmd
+md_patcher/.tmp_versions/
+md_patcher/modules.order
+md_patcher/Module.symvers
