@@ -35,6 +35,7 @@ released `pox-begonia-kernel` builds, including `Onyx`, `Onyx-APatch`,
 
 Modules are rebuilt automatically from the latest pox release by
 `tools/build_pox_modules.sh` (see `.github/workflows/update-modules.yml`).
+Maintainers/agents updating this repo should read **[HANDOFF.md](HANDOFF.md)**.
 
 ## Notes
 - The bootloader cannot be locked if you use this.
