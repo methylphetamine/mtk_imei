@@ -53,7 +53,16 @@ cp -f "$ROOT/md_patcher/md_patcher.c" \
 
 cd "$POX_DIR"
 log "checkout $BRANCH"
-git checkout -q -f "refs/heads/$BRANCH"
+# The pox tree is usually a blobless clone whose only local branch is the
+# default one, so `refs/heads/<branch>` frequently does not exist. Fetch the
+# requested branch and check out its remote-tracking ref; fall back to a local
+# branch when one is already present (e.g. a full clone).
+if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+    git checkout -q -f "$BRANCH"
+else
+    git fetch -q origin "$BRANCH"
+    git checkout -q -f "refs/remotes/origin/$BRANCH"
+fi
 
 log "configure $DEFCONFIG"
 rm -rf "$OBJ"

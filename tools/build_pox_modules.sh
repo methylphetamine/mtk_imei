@@ -25,7 +25,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-POX_REPO="${POX_REPO:-https://github.com/pox-project/pox-begonia-kernel}"
+POX_REPO="${POX_REPO:-https://github.com/POX-project/pox-begonia-kernel}"
 POX_REF="${POX_REF:-onyx}"
 DEFCONFIG="${DEFCONFIG:-begonia_user_defconfig}"
 EXCLUDE="${EXCLUDE:-ReSukiSU|Kaeru}"
@@ -60,7 +60,7 @@ BASE="$(make -s kernelversion)"
 log "pox base kernel version: $BASE"
 
 # 3. Fetch the latest release asset list.
-API="https://api.github.com/repos/pox-project/pox-begonia-kernel/releases/latest"
+API="https://api.github.com/repos/POX-project/pox-begonia-kernel/releases/latest"
 curl_args=(-fsSL -H "Accept: application/vnd.github+json")
 [ -n "${GH_TOKEN:-}" ] && curl_args+=(-H "Authorization: Bearer $GH_TOKEN")
 if ! curl "${curl_args[@]}" "$API" -o "$RELEASE_JSON"; then
