@@ -52,6 +52,9 @@ steps on a specific device (e.g. `chmod`/`chcon` a helper), ship a
 `twrp-extra.sh` at the zip root — the recovery installer runs it after the
 extraction.
 
+Release tool zips ship a ready-made `mtk_imei-twrp-template.zip` — the
+bundled module base (`data/patch.zip`) converted with this tool.
+
 ## Supported pox kernels (Redmi Note 8 Pro)
 The `data/begonia` folder ships prebuilt `md_patcher.ko` modules matching the
 released `pox-begonia-kernel` builds, including `Onyx`, `Onyx-APatch`,

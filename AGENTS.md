@@ -15,9 +15,9 @@ Read **`HANDOFF.md`** — it is the complete runbook. The short version:
 ```bash
 GH_TOKEN=<token> tools/build_pox_modules.sh   # build any missing modules
 tools/verify_modules.sh                        # check vermagic
-tools/package_release.sh                       # out/mtk_imei-<date>.zip
+tools/package_release.sh                       # out/mtk_imei-<date>.zip (single file)
 git add data/begonia && git commit -m "modules: sync with latest pox release" && git push
-gh release upload latest out/mtk_imei-*.zip --clobber
+# the push triggers the workflow, which republishes the single asset on `latest`
 ```
 
 ## Rules

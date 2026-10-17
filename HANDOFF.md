@@ -207,14 +207,23 @@ the bundled filenames (`md_patcher-<uname -r>.ko`).
 ## 9. Package & publish
 
 ```bash
-tools/package_release.sh                 # out/mtk_imei-<date>.zip
+tools/package_release.sh                 # out/mtk_imei-<date>.zip (single file)
 git add data/begonia && git commit -m "modules: sync with latest pox release"
-git push
-gh release upload latest out/mtk_imei-*.zip --clobber
+git push                                 # the workflow republishes `latest`
 ```
 
-The workflow publishes to the rolling `latest` release. Keep that tag; do not
-create per-run tags unless you change the workflow too.
+`out/mtk_imei-<date>.zip` is the only artifact: it bundles the tool, the
+module base and `mtk_imei-twrp-template.zip` (the TWRP-flashable conversion
+of `data/patch.zip`). The workflow uploads it to the rolling `latest` release
+after deleting the previous assets, so `latest` always holds exactly one
+file. Keep that tag; do not create per-run tags unless you change the
+workflow too. If you publish by hand, do the same:
+
+```bash
+gh release view latest --json assets --jq '.assets[].name' \
+  | xargs -r -I{} gh release delete-asset latest {} -y
+gh release upload latest out/mtk_imei-*.zip --clobber
+```
 
 ---
 
@@ -223,10 +232,11 @@ create per-run tags unless you change the workflow too.
 `.github/workflows/update-modules.yml` runs daily, on manual dispatch, and on
 push to `main`. It:
 
-1. installs host deps,
+1. installs host deps and runs `tools/test_magisk2twrp.sh`,
 2. runs `tools/build_pox_modules.sh` (builds only missing release strings),
 3. commits any new `data/begonia/*.ko`,
-4. packages and uploads to the `latest` release.
+4. packages the single tool zip and replaces the assets on the `latest`
+   release with it.
 
 It authenticates with the repo's own `GITHUB_TOKEN` (`contents: write`) — no
 personal access token is stored anywhere.
@@ -297,9 +307,9 @@ Who calls it:
 - users: `tools/magisk2twrp.sh <module.zip> [out.zip]`
 - CI: `.github/workflows/update-modules.yml` runs
   `tools/test_magisk2twrp.sh` (structure + chroot end-to-end tests, needs
-  root for the latter) and publishes
-  `out/mtk_imei-twrp-template-<date>.zip` — the TWRP-flashable conversion of
-  `data/patch.zip` — next to the tool zip on the rolling `latest` release.
+  root for the latter); `tools/package_release.sh` converts `data/patch.zip`
+  and bundles the result as `mtk_imei-twrp-template.zip` inside the tool zip
+  — the single asset on the rolling `latest` release.
 
 The converter is self-contained shell (bash + zip/unzip); it never ships
 `update-binary2`, so the output zip is a few KB smaller than the original.
@@ -323,6 +333,6 @@ tools/verify_modules.sh
 tools/magisk2twrp.sh my_module.zip
 tools/test_magisk2twrp.sh
 
-# Package + publish
-tools/package_release.sh && gh release upload latest out/mtk_imei-*.zip --clobber
+# Package (bundles mtk_imei-twrp-template.zip); push triggers publishing
+tools/package_release.sh
 ```

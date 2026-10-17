@@ -29,6 +29,10 @@ cp -f "$ROOT/config.txt" "$ROOT/mtk_imei.cmd" "$ROOT/mtk_imei.sh" \
       "$ROOT/README.md" "$ROOT/LICENSE" "$tmp/mtk_imei/" 2>/dev/null || true
 cp -r "$ROOT/bin" "$ROOT/data" "$tmp/mtk_imei/"
 
+# bundle the TWRP-flashable conversion of the module base, so the release
+# stays a single zip file
+"$ROOT/tools/magisk2twrp.sh" "$ROOT/data/patch.zip" "$tmp/mtk_imei/mtk_imei-twrp-template.zip"
+
 ( cd "$tmp" && zip -r -X -q "$ZIP" mtk_imei )
 echo ">> $ZIP"
 unzip -l "$ZIP" | tail -1
