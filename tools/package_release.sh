@@ -18,9 +18,12 @@ mkdir -p "$OUT"
 # md_patcher/ ships sources only, not build artifacts.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/mtk_imei/md_patcher"
+mkdir -p "$tmp/mtk_imei/md_patcher" "$tmp/mtk_imei/tools"
 cp -f "$ROOT/md_patcher/md_patcher.c" "$ROOT/md_patcher/modulus.h" \
       "$ROOT/md_patcher/Makefile" "$tmp/mtk_imei/md_patcher/"
+
+# ship the Magisk-module -> TWRP-flashable converter
+cp -f "$ROOT/tools/magisk2twrp.sh" "$tmp/mtk_imei/tools/"
 
 cp -f "$ROOT/config.txt" "$ROOT/mtk_imei.cmd" "$ROOT/mtk_imei.sh" \
       "$ROOT/README.md" "$ROOT/LICENSE" "$tmp/mtk_imei/" 2>/dev/null || true

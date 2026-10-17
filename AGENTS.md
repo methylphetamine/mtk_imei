@@ -5,6 +5,9 @@ TWRP-flashable `imei_repair-begonia.zip` that bundles an `md_patcher.ko` for
 every supported `pox-begonia-kernel` release and autodetects the running kernel
 at boot.
 
+It also ships `tools/magisk2twrp.sh`, which converts any Magisk module zip into
+a hybrid TWRP-flashable zip (self-test: `tools/test_magisk2twrp.sh`).
+
 ## If you are here to update it for a new pox kernel
 
 Read **`HANDOFF.md`** — it is the complete runbook. The short version:

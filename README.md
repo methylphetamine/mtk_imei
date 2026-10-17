@@ -28,6 +28,30 @@ release string to bundle only that module.
 2. Mount Vendor partition and delete `/vendor/etc/init/md_patcher.rc` and
    the `/vendor/lib/modules/md_patcher-*.ko` files.
 
+## Making a Magisk module TWRP-flashable
+`tools/magisk2twrp.sh` converts any Magisk module zip (including the
+`imei_repair-*.zip`s built here) into a hybrid zip that
+
+- still installs as a normal Magisk module from the Magisk app, and
+- can be flashed in TWRP: it extracts the module's partition trees
+  (`system/`, `system_ext/`, `product/`, `vendor/`, `odm/`) into the real
+  partitions and writes root-level `nvram.img` / `nvdata.img` to theirs.
+
+```sh
+tools/magisk2twrp.sh my_module.zip                  # -> out/<module-id>-twrp.zip
+tools/magisk2twrp.sh my_module.zip out/custom.zip
+```
+
+Dynamic ("super") partitions are handled automatically: the generated
+installer probes `/dev/block/mapper/<part>` (where TWRP maps logical
+partitions) before the `by-name` paths, and reports a clear error instead of
+half-flashing when a partition cannot be mounted read-write (use RO2RW).
+
+Stored file modes are preserved from the source zip. If a module needs extra
+steps on a specific device (e.g. `chmod`/`chcon` a helper), ship a
+`twrp-extra.sh` at the zip root — the recovery installer runs it after the
+extraction.
+
 ## Supported pox kernels (Redmi Note 8 Pro)
 The `data/begonia` folder ships prebuilt `md_patcher.ko` modules matching the
 released `pox-begonia-kernel` builds, including `Onyx`, `Onyx-APatch`,

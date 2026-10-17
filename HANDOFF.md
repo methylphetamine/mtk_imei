@@ -255,10 +255,58 @@ personal access token is stored anywhere.
   `uname -r` (e.g. `4.14.94+`, `4.14.141-g4e3bb1f-dirty`). Do not rename them:
   they are loaded through the vermagic-checked vendor rc, not the exact-name
   lookup. `tools/verify_modules.sh` reports them as `LEG` (informational only).
+- **Mode preservation in the converter.** `tools/magisk2twrp.sh` preserves the
+  modes stored in the source zip. `data/patch.zip` stores `system/bin/toybox2`
+  and `bin/*` as `0644` (the legacy updater-scripts `chmod`/`chown`/`chcon`
+  them at flash time); ship a `twrp-extra.sh` in a module that needs that.
 
 ---
 
-## 12. Quick reference commands
+## 12. Magisk-to-TWRP converter (`tools/magisk2twrp.sh`)
+
+Turns any Magisk module zip into a hybrid zip that flashes in TWRP and still
+installs as a Magisk module. The output zip contains:
+
+```
+module payload        unchanged (module.prop, post-fs-data.sh, system/, ...)
+META-INF/com/google/android/update-binary     hybrid shim (same trick as
+                                              data/patch.zip: BOOTMODE ->
+                                              install_module, recovery ->
+                                              the installer below)
+META-INF/com/google/android/twrp-install.sh   generated recovery installer
+META-INF/com/google/android/updater-script    carries the #MAGISK marker only
+```
+
+Recovery behaviour:
+
+- probes `/dev/block/mapper/<part>` first — TWRP maps super logical partitions
+  there at boot and symlinks them under
+  `/dev/block/platform/bootdevice/by-name/` — then the `mtk-msdc.0` and
+  generic `by-name` paths;
+- `system` is mounted at `/system_root` and detected as system-as-root
+  (`/system_root/system`) before falling back to `/system`;
+- rejects read-only mounts (erofs / unmapped dynamic partitions) with a clear
+  message instead of half-flashing (RO2RW case);
+- writes root-level `nvram.img` / `nvdata.img` to their partitions, refusing
+  while the partition is still mounted;
+- preserves stored file modes; runs a `twrp-extra.sh` from the zip (if
+  present) after extraction for device-specific `chmod`/`chown`/`chcon`.
+
+Who calls it:
+
+- users: `tools/magisk2twrp.sh <module.zip> [out.zip]`
+- CI: `.github/workflows/update-modules.yml` runs
+  `tools/test_magisk2twrp.sh` (structure + chroot end-to-end tests, needs
+  root for the latter) and publishes
+  `out/mtk_imei-twrp-template-<date>.zip` — the TWRP-flashable conversion of
+  `data/patch.zip` — next to the tool zip on the rolling `latest` release.
+
+The converter is self-contained shell (bash + zip/unzip); it never ships
+`update-binary2`, so the output zip is a few KB smaller than the original.
+
+---
+
+## 13. Quick reference commands
 
 ```bash
 # Build/refresh all begonia modules for the latest pox release
@@ -270,6 +318,10 @@ POX_DIR=/tmp/pox tools/build_module.sh onyx -Pox-1.0.0-Beta-Onyx-<hash> \
 
 # Verify every bundled module
 tools/verify_modules.sh
+
+# Convert a Magisk module zip into a hybrid TWRP-flashable zip
+tools/magisk2twrp.sh my_module.zip
+tools/test_magisk2twrp.sh
 
 # Package + publish
 tools/package_release.sh && gh release upload latest out/mtk_imei-*.zip --clobber

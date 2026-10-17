@@ -26,6 +26,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bc bison flex libssl-dev libelf-dev python3 zip unzip
 
+      - name: Test the Magisk-to-TWRP converter
+        run: sudo tools/test_magisk2twrp.sh
+
       - name: Build modules for the latest pox release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,12 +49,15 @@ jobs:
       - name: Package tool
         run: tools/package_release.sh
 
+      - name: Build TWRP template from the bundled module base
+        run: tools/magisk2twrp.sh data/patch.zip "out/mtk_imei-twrp-template-$(date +%Y%m%d).zip"
+
       - name: Publish rolling release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="latest"
-          notes="Automatically rebuilt md_patcher modules for the latest pox-begonia-kernel release. The single imei_repair zip autodetects the running kernel."
+          notes="Automatically rebuilt md_patcher modules for the latest pox-begonia-kernel release. The single imei_repair zip autodetects the running kernel. mtk_imei-twrp-template is the TWRP-flashable conversion (tools/magisk2twrp.sh) of the bundled Magisk module base."
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release edit "$tag" --notes "$notes"
           else
