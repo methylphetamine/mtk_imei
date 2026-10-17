@@ -15,8 +15,8 @@
 # bootdevice / by-name paths, and fails with clear instructions when a
 # partition cannot be opened read-write (RO2RW case).
 #
-# Optional: an executable-free hook named twrp-extra.sh in the module zip
-# is run from the recovery installer after the extraction (e.g. chcon).
+# Optional: a hook script named twrp-extra.sh in the module zip (no exec bit
+# needed) is run by the recovery installer after the extraction (e.g. chcon).
 #
 # Requires: bash, zip, unzip (Linux/macOS host; CI uses ubuntu).
 #
